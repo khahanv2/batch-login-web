@@ -37,6 +37,11 @@
     --danger-color: var(--danger-color-light);
     --warning-color: var(--warning-color-light);
     --info-color: var(--info-color-light);
+
+    /* New colors */
+    --accent-blue: #3498db;
+    --accent-purple: #9b59b6;
+    --accent-gold: #f1c40f;
 }
 
 /* Light and Dark Themes */
@@ -66,6 +71,9 @@
     --danger-color: var(--danger-color-dark);
     --warning-color: var(--warning-color-dark);
     --info-color: var(--info-color-dark);
+    --accent-blue: #3498db;
+    --accent-purple: #9b59b6;
+    --accent-gold: #f1c40f;
 }
 
 /* General Styles */
@@ -371,6 +379,18 @@ header {
     border-top: 5px solid var(--warning-color);
 }
 
+.stat-card.total-accounts {
+    border-top: 5px solid var(--accent-blue);
+}
+
+.stat-card.time {
+    border-top: 5px solid var(--accent-purple);
+}
+
+.stat-card.cost {
+    border-top: 5px solid var(--accent-gold);
+}
+
 .stat-value {
     font-size: 24px;
     font-weight: bold;
@@ -399,6 +419,18 @@ header {
 
 .processing .stat-icon {
     fill: var(--warning-color);
+}
+
+.stat-card.total-accounts .stat-icon {
+    fill: var(--accent-blue);
+}
+
+.stat-card.time .stat-icon {
+    fill: var(--accent-purple);
+}
+
+.stat-card.cost .stat-icon {
+    fill: var(--accent-gold);
 }
 
 .status-message {
@@ -578,31 +610,24 @@ tr:nth-child(even) {
 
 /* Footer */
 footer {
-    margin-top: auto;
-    padding: 20px;
     text-align: center;
-    color: var(--text-color);
-    opacity: 0.7;
-    font-size: 14px;
+    color: var(--text-secondary);
+    padding: 20px 0;
+    margin-top: 20px;
+    font-size: 0.9rem;
 }
 
 .footer-content {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    width: 100%;
-}
-
-.copyright {
-    text-align: left;
+    padding: 0 20px;
 }
 
 .version {
-    text-align: right;
-    font-size: 12px;
-    opacity: 0.8;
+    font-size: 0.8rem;
+    opacity: 0.7;
 }
 
 /* Responsive Design */
@@ -637,6 +662,13 @@ footer {
     }
 }
 
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
 /* Progress section styles when process is complete */
 .progress-section.complete .loading-spinner {
     display: none !important;
@@ -659,4 +691,9 @@ footer {
 
 .btn.new-process:hover {
     background-color: var(--primary-color-dark);
+}
+
+/* Style cho stats-container khi có nhiều dòng */
+.stats-container + .stats-container {
+    margin-top: 15px;
 } 
