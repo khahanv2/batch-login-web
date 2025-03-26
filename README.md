@@ -1,16 +1,17 @@
-# Batch Login Web Interface
+# K2 Check Web Interface
 
-Giao diện web cho công cụ batch login với thiết kế Neumorphism, hỗ trợ cả desktop và mobile.
+Giao diện web cho công cụ K2 Check với thiết kế Neumorphism, hỗ trợ xử lý tài khoản hàng loạt.
 
 ## Tính năng
 
-- Giao diện người dùng hiện đại với thiết kế Neumorphism
-- Hỗ trợ chế độ sáng/tối
 - Tải lên file Excel chứa danh sách tài khoản
-- Hiển thị tiến trình xử lý theo thời gian thực
-- Hiển thị kết quả thành công và thất bại
-- Tải xuống file kết quả
-- Thiết kế responsive, hỗ trợ cả desktop và mobile
+- Xử lý đăng nhập hàng loạt với nhiều luồng
+- Giải captcha tự động
+- Theo dõi tiến trình xử lý theo thời gian thực
+- Hiển thị kết quả đăng nhập thành công/thất bại
+- Xuất kết quả ra file Excel
+- Hỗ trợ chế độ sáng/tối
+- Thiết kế responsive cho cả desktop và mobile
 
 ## Cài đặt
 
