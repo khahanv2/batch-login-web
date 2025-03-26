@@ -26,7 +26,7 @@ var (
 	processesMutex sync.Mutex
 )
 
-// Process represents a running batch_login process
+// Process represents a running k2check process
 type Process struct {
 	ID              string
 	Cmd             *exec.Cmd
@@ -39,7 +39,7 @@ type Process struct {
 	StartTime       time.Time
 }
 
-// ProcessProgress represents the progress of a batch_login process
+// ProcessProgress represents the progress of a k2check process
 type ProcessProgress struct {
 	Progress           float64   `json:"progress"`
 	TotalAccounts      int       `json:"totalAccounts"`
@@ -204,10 +204,10 @@ func handleStartProcess(w http.ResponseWriter, r *http.Request) {
 	// Create a unique ID for this process
 	processID := fmt.Sprintf("process_%s", time.Now().Format("20060102_150405"))
 
-	// Set up the batch_login command
-	cmd := exec.Command("../batch_login", request.FilePath, strconv.Itoa(workers))
+	// Set up the k2check command
+	cmd := exec.Command("../k2check", request.FilePath, strconv.Itoa(workers))
 
-	log.Printf("Starting batch_login with command: %s %s %s", "../batch_login", request.FilePath, strconv.Itoa(workers))
+	log.Printf("Starting k2check with command: %s %s %s", "../k2check", request.FilePath, strconv.Itoa(workers))
 
 	// Start the process
 	err = cmd.Start()
@@ -416,7 +416,7 @@ func handleGetProgress(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// For simplicity, we'll use a rough estimate of progress based on time
-		// In a real implementation, you would parse the output of the batch_login process
+		// In a real implementation, you would parse the output of the k2check process
 		elapsedTime := time.Since(process.StartTime).Seconds()
 
 		// Assume the process takes around 2 minutes to complete
