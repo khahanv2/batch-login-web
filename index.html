@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K2 - Web Interface</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <header>
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm1-9.5v1a5 5 0 1 1-10 0v-1h2v1a3 3 0 1 0 6 0v-1h2zm-8 11v1a5 5 0 1 0 10 0v-1h2v1a7 7 0 1 1-14 0v-1h2z"/>
+            </svg>
+            <span>K2</span>
+        </div>
+        <div id="theme-toggle" class="theme-toggle"></div>
+    </header>
+    
+    <div class="container">
+        <!-- Upload Section -->
+        <section id="upload-section" class="card">
+            <h2 class="card-title">Tải lên file Excel</h2>
+            <form id="upload-form">
+                <div class="form-group">
+                    <label class="form-label">Tải lên file Excel</label>
+                    <div class="file-input-container">
+                        <input type="file" id="file-input" class="file-input" accept=".xlsx, .xls">
+                        <label for="file-input" class="file-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                            </svg>
+                            <span>Chọn file Excel</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số luồng xử lý</label>
+                    <div class="select-container">
+                        <select id="threads" class="threads-select">
+                            <option value="1">1 luồng</option>
+                            <option value="2" selected>2 luồng</option>
+                            <option value="3">3 luồng</option>
+                            <option value="4">4 luồng</option>
+                            <option value="6">6 luồng</option>
+                            <option value="8">8 luồng</option>
+                            <option value="10">10 luồng</option>
+                            <option value="12">12 luồng</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Bắt đầu xử lý
+                </button>
+            </form>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progress-section" class="card">
+            <h2 class="card-title">Tiến trình xử lý</h2>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar" style="width: 0%">
+                    <span id="progress-percentage" class="progress-percentage">0%</span>
+                </div>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card success">
+                    <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                    <div id="success-count" class="stat-value">0</div>
+                    <div class="stat-label">Thành công</div>
+                </div>
+                <div class="stat-card failed">
+                    <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                    </svg>
+                    <div id="failed-count" class="stat-value">0</div>
+                    <div class="stat-label">Thất bại</div>
+                </div>
+                <div class="stat-card processing">
+                    <div class="loading-spinner"></div>
+                    <div id="processing-count" class="stat-value">0</div>
+                    <div class="stat-label">Đang xử lý</div>
+                </div>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card total-accounts">
+                    <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                    <div id="total-accounts" class="stat-value">0</div>
+                    <div class="stat-label">Tổng số</div>
+                </div>
+                <div class="stat-card time">
+                    <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                    <div id="elapsed-time" class="stat-value">00:00:00</div>
+                    <div class="stat-label">Thời gian</div>
+                </div>
+                <div class="stat-card cost">
+                    <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                    </svg>
+                    <div id="total-cost" class="stat-value">0 VND</div>
+                    <div class="stat-label">Chi phí</div>
+                </div>
+            </div>
+            <div id="status-message" class="status-message">Đang xử lý...</div>
+            <button id="cancel-button" class="btn btn-danger btn-cancel">Hủy xử lý</button>
+            <button id="view-results-button" class="btn btn-primary" style="display: none; margin-top: 10px; width: 100%;">Xem kết quả</button>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" class="card">
+            <h2 class="card-title">Kết quả</h2>
+            <div class="tabs">
+                <div id="success-tab" class="tab active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Thành công
+                </div>
+                <div id="failure-tab" class="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    Thất bại
+                </div>
+            </div>
+            
+            <div id="success-results" class="tab-content active">
+                <div class="table-container">
+                    <table id="success-table" class="results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tài khoản</th>
+                                <th>Số dư</th>
+                                <th>Lần gửi cuối</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be filled with JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="no-success-message" class="empty-table" style="display: none;">Không có dữ liệu thành công</div>
+                </div>
+                <div class="download-container">
+                    <button id="download-success" class="btn btn-download">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        Tải xuống
+                    </button>
+                </div>
+            </div>
+            
+            <div id="failure-results" class="tab-content">
+                <div class="table-container">
+                    <table id="failure-table" class="results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tài khoản</th>
+                                <th>Mật khẩu</th>
+                                <th>Lý do thất bại</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be filled with JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="no-fail-message" class="empty-table" style="display: none;">Không có dữ liệu thất bại</div>
+                </div>
+                <div class="download-container">
+                    <button id="download-failure" class="btn btn-download">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        Tải xuống
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-spinner"></div>
+            <div class="modal-message">Đang xử lý dữ liệu...</div>
+            <div class="modal-submessage">Vui lòng đợi trong giây lát</div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="copyright">© 2025 K2 Web Interface. All rights reserved.</div>
+            <div class="version">v0.0.1</div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html> 
