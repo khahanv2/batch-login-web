@@ -1,0 +1,643 @@
+:root {
+    /* Light theme colors */
+    --bg-color-light: #f0f2f5;
+    --text-color-light: #333;
+    --card-bg-light: #fff;
+    --shadow-light: 10px 10px 20px rgba(0, 0, 0, 0.1), -10px -10px 20px rgba(255, 255, 255, 0.5);
+    --inner-shadow-light: inset 5px 5px 10px rgba(0, 0, 0, 0.05), inset -5px -5px 10px rgba(255, 255, 255, 0.5);
+    --primary-color-light: #4e54c8;
+    --primary-hover-light: #3f44a3;
+    --success-color-light: #28a745;
+    --danger-color-light: #dc3545;
+    --warning-color-light: #ffc107;
+    --info-color-light: #17a2b8;
+    
+    /* Dark theme colors */
+    --bg-color-dark: #1a1b2e;
+    --text-color-dark: #e4e6eb;
+    --card-bg-dark: #242636;
+    --shadow-dark: 10px 10px 20px rgba(0, 0, 0, 0.5), -10px -10px 20px rgba(255, 255, 255, 0.05);
+    --inner-shadow-dark: inset 5px 5px 10px rgba(0, 0, 0, 0.5), inset -5px -5px 10px rgba(255, 255, 255, 0.05);
+    --primary-color-dark: #5f67f0;
+    --primary-hover-dark: #7a81ff;
+    --success-color-dark: #39e75a;
+    --danger-color-dark: #ff4858;
+    --warning-color-dark: #ffdf00;
+    --info-color-dark: #1fc8e3;
+    
+    /* Active theme variables (will be set by JavaScript) */
+    --bg-color: var(--bg-color-light);
+    --text-color: var(--text-color-light);
+    --card-bg: var(--card-bg-light);
+    --shadow: var(--shadow-light);
+    --inner-shadow: var(--inner-shadow-light);
+    --primary-color: var(--primary-color-light);
+    --primary-color-dark: var(--primary-hover-light);
+    --success-color: var(--success-color-light);
+    --danger-color: var(--danger-color-light);
+    --warning-color: var(--warning-color-light);
+    --info-color: var(--info-color-light);
+}
+
+/* Light and Dark Themes */
+.light-mode {
+    --bg-color: var(--bg-color-light);
+    --text-color: var(--text-color-light);
+    --card-bg: var(--card-bg-light);
+    --shadow: var(--shadow-light);
+    --inner-shadow: var(--inner-shadow-light);
+    --primary-color: var(--primary-color-light);
+    --primary-color-dark: var(--primary-hover-light);
+    --success-color: var(--success-color-light);
+    --danger-color: var(--danger-color-light);
+    --warning-color: var(--warning-color-light);
+    --info-color: var(--info-color-light);
+}
+
+.dark-mode {
+    --bg-color: var(--bg-color-dark);
+    --text-color: var(--text-color-dark);
+    --card-bg: var(--card-bg-dark);
+    --shadow: var(--shadow-dark);
+    --inner-shadow: var(--inner-shadow-dark);
+    --primary-color: var(--primary-color-dark);
+    --primary-color-dark: var(--primary-hover-dark);
+    --success-color: var(--success-color-dark);
+    --danger-color: var(--danger-color-dark);
+    --warning-color: var(--warning-color-dark);
+    --info-color: var(--info-color-dark);
+}
+
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--card-bg);
+    box-shadow: var(--shadow);
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.logo svg {
+    width: 40px;
+    height: 40px;
+    fill: var(--primary-color);
+}
+
+.theme-toggle {
+    width: 50px;
+    height: 25px;
+    background-color: var(--bg-color);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    cursor: pointer;
+    position: relative;
+    box-shadow: var(--inner-shadow);
+}
+
+.theme-toggle:before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    transition: transform 0.3s;
+    box-shadow: var(--shadow);
+}
+
+.dark-mode .theme-toggle:before {
+    transform: translateX(25px);
+}
+
+/* Card Styles (Neumorphism) */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.file-input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 150px;
+    border-radius: 15px;
+    border: 2px dashed var(--primary-color);
+    cursor: pointer;
+    transition: all 0.3s;
+    background-color: var(--card-bg);
+    box-shadow: var(--inner-shadow);
+}
+
+.file-label:hover {
+    border-color: var(--primary-color-dark);
+    transform: translateY(-2px);
+}
+
+.file-label svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    fill: var(--primary-color);
+}
+
+.file-label span {
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.threads-select {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: none;
+    box-shadow: var(--inner-shadow);
+    appearance: none;
+}
+
+.select-container {
+    position: relative;
+}
+
+.select-container:after {
+    content: '▼';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--primary-color);
+}
+
+/* Button Styles */
+.btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: var(--shadow);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: var(--inner-shadow);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.btn-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-color-dark);
+}
+
+.btn-cancel {
+    width: 100%;
+}
+
+.btn-download {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--info-color);
+    color: white;
+}
+
+.btn-download:hover {
+    background-color: var(--info-color-dark);
+}
+
+.btn-download svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+/* Progress Section Styles */
+.progress-container {
+    width: 100%;
+    height: 20px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--inner-shadow);
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-percentage {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    flex: 1;
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-card.success {
+    border-top: 5px solid var(--success-color);
+}
+
+.stat-card.failed {
+    border-top: 5px solid var(--danger-color);
+}
+
+.stat-card.processing {
+    border-top: 5px solid var(--warning-color);
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.stat-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-color);
+}
+
+.success .stat-icon {
+    fill: var(--success-color);
+}
+
+.failed .stat-icon {
+    fill: var(--danger-color);
+}
+
+.processing .stat-icon {
+    fill: var(--warning-color);
+}
+
+.status-message {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--bg-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Results Section Styles */
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--card-bg);
+    transition: all 0.3s;
+}
+
+.tab.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.empty-table {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.download-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Loading Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.modal-spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid var(--bg-color);
+    border-top: 6px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.modal-message {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transform: translateX(150%);
+    transition: transform 0.3s;
+    z-index: 1000;
+    max-width: 350px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.error {
+    border-left: 5px solid var(--danger-color);
+}
+
+.notification.info {
+    border-left: 5px solid var(--info-color);
+}
+
+.notification.success {
+    border-left: 5px solid var(--success-color);
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    padding: 20px;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    header {
+        padding: 10px 15px;
+        margin-bottom: 20px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .stats-container {
+        flex-direction: column;
+    }
+    
+    .stat-card {
+        margin-bottom: 10px;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .file-label {
+        height: 120px;
+    }
+}
+
+/* Progress section styles when process is complete */
+.progress-section.complete .loading-spinner {
+    display: none !important;
+}
+
+.progress-section.complete .progress-bar {
+    background-color: var(--success-color);
+}
+
+.progress-section.complete .status-message {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+/* Add styles for the "New Process" button */
+.btn.new-process {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn.new-process:hover {
+    background-color: var(--primary-color-dark);
+} 
