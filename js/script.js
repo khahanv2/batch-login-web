@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentProcessId = null;
     let isProcessing = false;
     let pollingInterval = null;
+    let startTime = null;
+    let timerInterval = null;
+    let totalAccounts = 0;
+    const COST_PER_ACCOUNT = 200; // 200 VND/tài khoản
     
     // Initialize theme
     initTheme();
@@ -154,12 +158,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const processData = await processResponse.json();
             currentProcessId = processData.processId;
             
+            // Update total accounts if available
+            if (processData.totalAccounts) {
+                updateTotalAccounts(processData.totalAccounts);
+            }
+            
             // Hide loading modal
             loadingModal.style.display = 'none';
             
             // Show progress section and hide upload section
             document.getElementById('upload-section').style.display = 'none';
             progressSection.style.display = 'block';
+            
+            // Reset and start timer
+            startTimer();
             
             // Start polling for progress
             isProcessing = true;
@@ -178,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(pollingInterval);
         }
         
-        // Poll every 2 seconds
-        pollingInterval = setInterval(pollProgress, 2000);
+        // Poll every 1 second
+        pollingInterval = setInterval(pollProgress, 1000);
         
         // Initial poll
         pollProgress();
@@ -199,12 +211,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const progressData = await response.json();
-            updateUI(progressData);
+            
+            // Update total accounts if available
+            if (progressData.totalAccounts && progressData.totalAccounts > 0) {
+                updateTotalAccounts(progressData.totalAccounts);
+            }
+            
+            // Update progress bar
+            const progress = Math.round(progressData.progress);
+            progressBar.style.width = `${progress}%`;
+            progressPercentage.textContent = `${progress}%`;
+            
+            // Update counters
+            successCount.textContent = progressData.successAccounts || 0;
+            failedCount.textContent = progressData.failedAccounts || 0;
+            
+            // Calculate processing count
+            const processing = totalAccounts - (progressData.successAccounts || 0) - (progressData.failedAccounts || 0);
+            processingCount.textContent = processing > 0 ? processing : 0;
             
             // If process is complete, stop polling
             if (progressData.isComplete) {
                 clearInterval(pollingInterval);
                 isProcessing = false;
+                
+                // Stop timer
+                stopTimer();
+                
+                // Update UI with process completion
+                document.getElementById('status-message').textContent = 'Xử lý hoàn tất!';
+                cancelButton.style.display = 'none';
+                viewResultsBtn.style.display = 'block';
+                
+                // Show results
                 showResults(progressData);
             }
             
@@ -212,18 +251,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error polling progress:', error);
             // Don't stop polling on error, just try again next time
         }
-    }
-
-    function updateUI(progressData) {
-        // Update progress bar
-        const progress = Math.round(progressData.progress);
-        progressBar.style.width = `${progress}%`;
-        progressPercentage.textContent = `${progress}%`;
-        
-        // Update counters
-        successCount.textContent = progressData.successAccounts || 0;
-        failedCount.textContent = progressData.failedAccounts || 0;
-        processingCount.textContent = progressData.processingAccounts || 0;
     }
 
     function showResults(data) {
@@ -499,5 +526,50 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.getElementById('statusMessage').textContent = 'Processing accounts...';
         }
+    }
+
+    // Hàm cập nhật hiển thị thời gian
+    function updateElapsedTime() {
+        if (!startTime) return;
+        
+        const now = new Date();
+        const elapsedMs = now - startTime;
+        const seconds = Math.floor((elapsedMs / 1000) % 60);
+        const minutes = Math.floor((elapsedMs / (1000 * 60)) % 60);
+        const hours = Math.floor(elapsedMs / (1000 * 60 * 60));
+        
+        const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('elapsed-time').textContent = timeStr;
+    }
+
+    // Hàm bắt đầu đếm thời gian
+    function startTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        startTime = new Date();
+        timerInterval = setInterval(updateElapsedTime, 1000);
+        updateElapsedTime();
+    }
+
+    // Hàm dừng đếm thời gian
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // Hàm cập nhật chi phí
+    function updateCost() {
+        const cost = totalAccounts * COST_PER_ACCOUNT;
+        document.getElementById('total-cost').textContent = `${cost.toLocaleString('vi-VN')} VND`;
+    }
+
+    // Hàm cập nhật tổng số tài khoản
+    function updateTotalAccounts(total) {
+        totalAccounts = total;
+        document.getElementById('total-accounts').textContent = total;
+        updateCost();
     }
 }); 

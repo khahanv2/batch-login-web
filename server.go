@@ -26,7 +26,7 @@ var (
 	processesMutex sync.Mutex
 )
 
-// Process represents a running k2check process
+// Process represents a running batch_login process
 type Process struct {
 	ID              string
 	Cmd             *exec.Cmd
@@ -37,9 +37,13 @@ type Process struct {
 	SuccessFilePath string
 	FailFilePath    string
 	StartTime       time.Time
+	EndTime         time.Time
+	UploadFilePath  string
+	Status          string
+	Threads         int
 }
 
-// ProcessProgress represents the progress of a k2check process
+// ProcessProgress represents the progress of a batch_login process
 type ProcessProgress struct {
 	Progress           float64   `json:"progress"`
 	TotalAccounts      int       `json:"totalAccounts"`
@@ -204,10 +208,10 @@ func handleStartProcess(w http.ResponseWriter, r *http.Request) {
 	// Create a unique ID for this process
 	processID := fmt.Sprintf("process_%s", time.Now().Format("20060102_150405"))
 
-	// Set up the k2check command
-	cmd := exec.Command("../k2check", request.FilePath, strconv.Itoa(workers))
+	// Set up the batch_login command
+	cmd := exec.Command("../batch_login", request.FilePath, strconv.Itoa(workers))
 
-	log.Printf("Starting k2check with command: %s %s %s", "../k2check", request.FilePath, strconv.Itoa(workers))
+	log.Printf("Starting batch_login with command: %s %s %s", "../batch_login", request.FilePath, strconv.Itoa(workers))
 
 	// Start the process
 	err = cmd.Start()
@@ -216,16 +220,26 @@ func handleStartProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Đếm số tài khoản trong file Excel
+	totalAccounts, err := countAccountsInExcel(request.FilePath)
+	if err != nil {
+		log.Printf("Lỗi khi đếm tài khoản: %v", err)
+		totalAccounts = 0 // Mặc định nếu có lỗi
+	}
+
 	// Store the process information
 	processesMutex.Lock()
 	processes[processID] = &Process{
 		ID:              processID,
 		Cmd:             cmd,
 		IsComplete:      false,
-		TotalAccounts:   0,
+		TotalAccounts:   totalAccounts, // Sử dụng giá trị đếm được
 		SuccessAccounts: 0,
 		FailedAccounts:  0,
 		StartTime:       time.Now(),
+		UploadFilePath:  request.FilePath,
+		Status:          "running",
+		Threads:         workers,
 	}
 	processesMutex.Unlock()
 
@@ -243,6 +257,7 @@ func handleStartProcess(w http.ResponseWriter, r *http.Request) {
 
 		if process, ok := processes[processID]; ok {
 			process.IsComplete = true
+			process.EndTime = time.Now()
 
 			// Find the result files - search with a broader pattern
 			log.Printf("Searching for result files in: %s", resultsDir)
@@ -288,13 +303,35 @@ func handleStartProcess(w http.ResponseWriter, r *http.Request) {
 			if process.SuccessFilePath == "" && process.FailFilePath == "" {
 				log.Printf("Warning: No result files found after process completion")
 			}
+
+			// Read the Excel file to count the total number of accounts
+			xlFile, err := excelize.OpenFile(request.FilePath)
+			if err != nil {
+				log.Printf("Lỗi khi mở file Excel: %v", err)
+				return
+			}
+
+			// Đếm số dòng trong sheet đầu tiên
+			sheetName := xlFile.GetSheetName(0)
+			rows, err := xlFile.GetRows(sheetName)
+			if err != nil {
+				log.Printf("Lỗi khi đọc dữ liệu từ Excel: %v", err)
+				return
+			}
+
+			// Đếm số dòng dữ liệu (trừ header nếu có)
+			process.TotalAccounts = len(rows)
+			if process.TotalAccounts > 0 {
+				process.TotalAccounts-- // Trừ dòng header
+			}
 		}
 	}()
 
-	// Respond with the process ID
-	log.Printf("Started process %s", processID)
-	response := map[string]string{
-		"processId": processID,
+	// Respond with the process ID and total accounts
+	log.Printf("Started process %s with %d accounts", processID, totalAccounts)
+	response := map[string]interface{}{
+		"processId":     processID,
+		"totalAccounts": totalAccounts,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -317,10 +354,10 @@ func handleGetProgress(w http.ResponseWriter, r *http.Request) {
 
 	// Create the response
 	progress := &ProcessProgress{
-		TotalAccounts:      0,
+		TotalAccounts:      process.TotalAccounts, // Lấy trực tiếp từ process
 		SuccessAccounts:    0,
 		FailedAccounts:     0,
-		ProcessingAccounts: 0,
+		ProcessingAccounts: process.TotalAccounts, // Mặc định tất cả đang xử lý
 		IsComplete:         process.IsComplete,
 	}
 
@@ -358,99 +395,42 @@ func handleGetProgress(w http.ResponseWriter, r *http.Request) {
 			log.Printf("No fail file found for process %s", processID)
 		}
 
-		progress.TotalAccounts = progress.SuccessAccounts + progress.FailedAccounts
+		// Cập nhật số lượng tài khoản đang xử lý và tiến trình
+		progress.ProcessingAccounts = progress.TotalAccounts - progress.SuccessAccounts - progress.FailedAccounts
+		if progress.ProcessingAccounts < 0 {
+			progress.ProcessingAccounts = 0
+		}
+
+		// Tiến trình hoàn thành
 		progress.Progress = 100.0
-
-		// If there's no data at all but process is complete, check for files again
-		if progress.TotalAccounts == 0 {
-			log.Printf("No data found but process is complete, checking for result files again")
-
-			// Check current directory and results directory for any Excel files
-			resultDirFiles, _ := filepath.Glob(filepath.Join(resultsDir, "*.xlsx"))
-			log.Printf("Found %d files in results directory", len(resultDirFiles))
-
-			currentDirFiles, _ := filepath.Glob("*.xlsx")
-			log.Printf("Found %d files in current directory", len(currentDirFiles))
-
-			// Use the first available success and fail files if not set
-			for _, file := range append(resultDirFiles, currentDirFiles...) {
-				if strings.Contains(file, "success") && process.SuccessFilePath == "" {
-					process.SuccessFilePath = file
-					log.Printf("Setting success file to: %s", file)
-					successAccounts, err := readExcelResults(file, true)
-					if err == nil {
-						progress.SuccessAccounts = len(successAccounts)
-						progress.SuccessData = successAccounts
-						log.Printf("Read %d success accounts from newly found file", len(successAccounts))
-					}
-				} else if strings.Contains(file, "fail") && process.FailFilePath == "" {
-					process.FailFilePath = file
-					log.Printf("Setting fail file to: %s", file)
-					failAccounts, err := readExcelResults(file, false)
-					if err == nil {
-						progress.FailedAccounts = len(failAccounts)
-						progress.FailData = failAccounts
-						log.Printf("Read %d failed accounts from newly found file", len(failAccounts))
-					}
-				}
-			}
-
-			progress.TotalAccounts = progress.SuccessAccounts + progress.FailedAccounts
-
-			// If still no data, provide minimal data for UI to show something
-			if progress.TotalAccounts == 0 {
-				log.Printf("Still no data found, providing placeholder data")
-				// Create some placeholder data so the UI shows something
-				progress.SuccessData = []Account{
-					{
-						Username:    "Placeholder account",
-						Success:     true,
-						Balance:     0,
-						LastDeposit: 0,
-						DepositTime: time.Now().Format("2006-01-02 15:04:05"),
-					},
-				}
-				progress.SuccessAccounts = 1
-				progress.TotalAccounts = 1
-			}
-		}
 	} else {
-		// For simplicity, we'll use a rough estimate of progress based on time
-		// In a real implementation, you would parse the output of the k2check process
-		elapsedTime := time.Since(process.StartTime).Seconds()
+		// Đảm bảo dùng giá trị tài khoản thực tế từ tệp Excel
+		progress.TotalAccounts = process.TotalAccounts
 
-		// Assume the process takes around 2 minutes to complete
-		estimatedProgress := (elapsedTime / 120.0) * 100.0
-		if estimatedProgress > 99.0 {
-			estimatedProgress = 99.0
+		// Nếu chưa có kết quả, tất cả tài khoản đều đang xử lý
+		progress.ProcessingAccounts = progress.TotalAccounts - progress.SuccessAccounts - progress.FailedAccounts
+		if progress.ProcessingAccounts < 0 {
+			progress.ProcessingAccounts = 0
 		}
 
-		progress.Progress = estimatedProgress
-
-		// Try to get more accurate progress by checking if result files are being created
-		resultFiles, _ := filepath.Glob(filepath.Join(resultsDir, fmt.Sprintf("*_%s.xlsx", time.Now().Format("20060102"))))
-		for _, file := range resultFiles {
-			if strings.Contains(file, "success") {
-				successAccounts, _ := readExcelResults(file, true)
-				progress.SuccessAccounts = len(successAccounts)
-			} else if strings.Contains(file, "fail") {
-				failAccounts, _ := readExcelResults(file, false)
-				progress.FailedAccounts = len(failAccounts)
+		// Tính tỉ lệ phần trăm dựa trên số tài khoản đã xử lý xong
+		if progress.TotalAccounts > 0 {
+			estimatedProgress := float64(progress.SuccessAccounts+progress.FailedAccounts) / float64(progress.TotalAccounts) * 100.0
+			if estimatedProgress > 99.0 {
+				estimatedProgress = 99.0
 			}
+			progress.Progress = estimatedProgress
+		} else {
+			progress.Progress = 0
 		}
 
-		// For demo purposes, set some placeholder values if we can't read the files yet
-		if progress.SuccessAccounts == 0 && progress.FailedAccounts == 0 {
-			// Random values for demonstration
-			totalEstimated := 10
-			progress.TotalAccounts = totalEstimated
-			progress.SuccessAccounts = int(estimatedProgress / 100.0 * float64(totalEstimated/3))
-			progress.FailedAccounts = int(estimatedProgress / 100.0 * float64(totalEstimated/3*2))
-			progress.ProcessingAccounts = totalEstimated - progress.SuccessAccounts - progress.FailedAccounts
-		} else {
-			progress.TotalAccounts = progress.SuccessAccounts + progress.FailedAccounts + progress.ProcessingAccounts
-			// Assume there are more accounts still processing
-			progress.ProcessingAccounts = 2 // Arbitrary value for demonstration
+		// Kiểm tra nếu vẫn chưa có tổng số tài khoản (do lỗi đọc file), thử đọc lại
+		if progress.TotalAccounts == 0 {
+			// Thử đọc số tài khoản từ file một lần nữa
+			if totalAccounts, err := countAccountsInExcel(process.UploadFilePath); err == nil && totalAccounts > 0 {
+				progress.TotalAccounts = totalAccounts
+				progress.ProcessingAccounts = totalAccounts - progress.SuccessAccounts - progress.FailedAccounts
+			}
 		}
 	}
 
@@ -620,4 +600,36 @@ func readExcelResults(filePath string, isSuccess bool) ([]Account, error) {
 
 	log.Printf("Read %d accounts from %s", len(accounts), filePath)
 	return accounts, nil
+}
+
+// Sửa hàm đọc file Excel để đếm đúng số tài khoản (chỉ đếm dòng có cả username và password)
+func countAccountsInExcel(filePath string) (int, error) {
+	// Mở file Excel
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		log.Printf("Lỗi khi mở file Excel: %v", err)
+		return 0, err
+	}
+	defer f.Close()
+
+	// Lấy tên sheet đầu tiên
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		log.Printf("Lỗi khi đọc dữ liệu từ Excel: %v", err)
+		return 0, err
+	}
+
+	// Bỏ qua dòng header
+	accountCount := 0
+	for i := 1; i < len(rows); i++ { // Bắt đầu từ dòng 1 (sau header)
+		row := rows[i]
+		// Kiểm tra nếu row có đủ 3 cột và cột 2 (username) và cột 3 (password) không rỗng
+		if len(row) >= 3 && row[1] != "" && row[2] != "" {
+			accountCount++
+		}
+	}
+
+	log.Printf("Đếm được %d tài khoản hợp lệ trong file Excel", accountCount)
+	return accountCount, nil
 }
