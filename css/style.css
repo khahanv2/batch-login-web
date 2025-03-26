@@ -586,6 +586,25 @@ footer {
     font-size: 14px;
 }
 
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.copyright {
+    text-align: left;
+}
+
+.version {
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
